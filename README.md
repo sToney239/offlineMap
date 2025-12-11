@@ -18,7 +18,7 @@
 
 本工具的基本页面如下
 
-<img src="pics/mainPage.jpg" alt="基本页面" style="zoom: 25%;" />
+<img src="pics/mainPage.jpg" alt="基本页面" style="width:300px;" />
 
 ### 基础信息
 
@@ -46,4 +46,4 @@
   - 地铁和公交都会提示下车站，如果地铁需要出站，本应用会提示出站口
 - 需要步行的部分，会有 <span style="color: #5A9FE0;">导航</span> 按钮，点击可以快速跳转到Organic Maps进行当前的步行导航（注意，当前Organic Maps存在小bug，如果在链接跳转之前，已经在Organic Maps中正在进行步行导航或者正在查看兴趣点，可能无法立即生效当前导航，建议关闭或者清理之前的界面后重试）
 
-<img src="pics/routing_example.jpg" alt="基本页面" style="zoom: 25%;" />
+<img src="pics/routing_example.jpg" alt="基本页面" style="width:300px;" />
