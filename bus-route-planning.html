@@ -121,7 +121,7 @@
             font-size: 14px;
         }
         
-        #cityinput, #startinput, #endinput, #departuretime, #policy-select {
+        #cityinput, #startinput, #endinput, #departuretime {
             width: 100%;
             padding: 12px;
             padding-right: 70px;
@@ -134,9 +134,22 @@
             font-family: Arial, sans-serif, 'Courier New', monospace;
             transition: border-color 0.2s, background-color 0.2s;
         }
+        #cityinput {
+            padding-left: 50px;
+            padding-right: 12px;
+        }
         
         #policy-select {
-            padding-right: 12px;
+            width: 100%;
+            padding: 12px 35px 12px 12px;
+            border: 1px solid #3e3e42;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+            background-color: #3c3c3c;
+            color: #d4d4d4;
+            font-family: Arial, sans-serif, 'Courier New', monospace;
+            transition: border-color 0.2s, background-color 0.2s;
             cursor: pointer;
         }
         
@@ -146,7 +159,7 @@
             background-color: #404040;
         }
         
-        #cityinput::placeholder, #startinput::placeholder, #endinput::placeholder, #departuretime::placeholder {
+        #cityinput::placeholder, #startinput::placeholder, #endinput::placeholder, #departuretime::placeholder, #policy-select::placeholder {
             color: #858585;
         }
         
@@ -315,15 +328,15 @@
         }
         
         .step-icon.walk {
-            background-color: #4ec9b0;
+            background-color: #01AF50;
         }
         
         .step-icon.bus {
-            background-color: #dcdcaa;
+            background-color: #02B9D6;
         }
         
         .step-icon.metro {
-            background-color: #c586c0;
+            background-color: #F3A643;
         }
         
         .step-content {
@@ -487,6 +500,61 @@
         
         .settings-btn:active {
             transform: scale(0.95);
+        }
+        
+        .city-input-container {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
+        
+        .city-input-container {
+            position: relative;
+            width: 120px;
+        }
+        
+        .city-label {
+            position: absolute;
+            left: 0;
+            top: 0;
+            background-color: #666666;
+            color: #d4d4d4;
+            padding: 0 8px;
+            font-size: 12px;
+            font-weight: bold;
+            font-family: Arial, sans-serif, 'Courier New', monospace;
+            height: 40px;
+            width: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+            border-radius: 4px 0 0 4px;
+        }
+        
+        .city-input-container input {
+            width: 160px;
+            padding: 12px 12px 12px 45px;
+            border: 1px solid #3e3e42;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+            background-color: #3c3c3c;
+            color: #d4d4d4;
+            font-family: Arial, sans-serif, 'Courier New', monospace;
+            transition: border-color 0.2s, background-color 0.2s;
+            height: 40px;
+        }
+        
+        .city-input-container input:focus {
+            outline: none;
+            border-color: #0078d4;
+            background-color: #404040;
+        }
+        
+        .city-input-container input::placeholder {
+            color: #858585;
         }
         
         .settings-modal {
@@ -740,6 +808,12 @@
     <!-- 设置按钮 -->
     <button class="settings-btn" onclick="openSettings()" title="设置常用地址">=</button>
     
+    <!-- 城市输入框 -->
+    <div class="city-input-container">
+        <div class="city-label">城市</div>
+        <input id='cityinput' type="text" placeholder="输入城市名称">
+    </div>
+    
     <!-- 设置弹窗 -->
     <div id="settings-modal" class="settings-modal">
         <div class="settings-card">
@@ -780,13 +854,7 @@
         <h1 style="text-align: center; color: #cccccc; margin-bottom: 30px; font-weight: 300; font-size: 24px;">公共交通路线规划</h1>
         
         <div class="input-group">
-            <div class="input-item">
-                <div class="input-item-prepend">
-                    <span class="input-item-text">城市</span>
-                </div>
-                <input id='cityinput' type="text" placeholder="输入城市名称" style="padding-right: 12px;">
-            </div>
-            <div class="input-item">
+            <div class="input-item" style="flex: 7;">
                 <div class="input-item-prepend">
                     <span class="input-item-text">出发时间</span>
                 </div>
@@ -804,18 +872,22 @@
                     </div>
                 </div>
             </div>
-            <div class="input-item">
+            <div class="input-item" style="flex: 3;">
                 <div class="input-item-prepend">
                     <span class="input-item-text">路线选择依据</span>
                 </div>
-                <select id="policy-select">
-                    <option value="LEAST_TIME">最快捷</option>
-                    <option value="LEAST_FEE">最经济</option>
-                    <option value="LEAST_TRANSFER">最少换乘</option>
-                    <option value="LEAST_WALK">最少步行</option>
-                    <option value="MOST_COMFORT">最舒适</option>
-                    <option value="NO_SUBWAY">不乘地铁</option>
-                </select>
+                <div class="autocomplete-container">
+                    <input id="policy-select" type="text" readonly value="最快捷" data-value="LEAST_TIME">
+                    <button class="autocomplete-dropdown" onclick="togglePolicyDropdown()" title="选择路线依据">▼</button>
+                    <div id="policy-dropdown" class="dropdown-menu">
+                        <div class="dropdown-item" onclick="selectPolicy('LEAST_TIME', '最快捷')">最快捷</div>
+                        <div class="dropdown-item" onclick="selectPolicy('LEAST_FEE', '最经济')">最经济</div>
+                        <div class="dropdown-item" onclick="selectPolicy('LEAST_TRANSFER', '最少换乘')">最少换乘</div>
+                        <div class="dropdown-item" onclick="selectPolicy('LEAST_WALK', '最少步行')">最少步行</div>
+                        <div class="dropdown-item" onclick="selectPolicy('MOST_COMFORT', '最舒适')">最舒适</div>
+                        <div class="dropdown-item" onclick="selectPolicy('NO_SUBWAY', '不乘地铁')">不乘地铁</div>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="input-group">
@@ -1070,25 +1142,39 @@
         function setupAutocomplete() {
             var city = getCurrentCity();
             
-            // 地点搜索服务
-            startPlaceSearch = new AMap.PlaceSearch({
-                city: city,
-                pageSize: 5
-            });
+            // 如果PlaceSearch服务不存在，则创建新的；否则只更新城市设置
+            if (!startPlaceSearch) {
+                startPlaceSearch = new AMap.PlaceSearch({
+                    city: city,
+                    pageSize: 5
+                });
+            } else {
+                startPlaceSearch.setCity(city);
+            }
             
-            endPlaceSearch = new AMap.PlaceSearch({
-                city: city,
-                pageSize: 5
-            });
+            if (!endPlaceSearch) {
+                endPlaceSearch = new AMap.PlaceSearch({
+                    city: city,
+                    pageSize: 5
+                });
+            } else {
+                endPlaceSearch.setCity(city);
+            }
             
-            // 设置输入提示
-            setupInputSuggestion('startinput', startPlaceSearch, function(location) {
-                startLocation = location;
-            });
+            // 设置输入提示（如果还没有设置过）
+            if (!document.getElementById('startinput').hasAttribute('data-suggestion-setup')) {
+                setupInputSuggestion('startinput', startPlaceSearch, function(location) {
+                    startLocation = location;
+                });
+                document.getElementById('startinput').setAttribute('data-suggestion-setup', 'true');
+            }
             
-            setupInputSuggestion('endinput', endPlaceSearch, function(location) {
-                endLocation = location;
-            });
+            if (!document.getElementById('endinput').hasAttribute('data-suggestion-setup')) {
+                setupInputSuggestion('endinput', endPlaceSearch, function(location) {
+                    endLocation = location;
+                });
+                document.getElementById('endinput').setAttribute('data-suggestion-setup', 'true');
+            }
         }
         
         // 设置输入提示功能
@@ -1208,6 +1294,16 @@
             });
         }
         
+        // 点击页面其他地方关闭所有下拉菜单
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.autocomplete-container')) {
+                ['time-dropdown', 'policy-dropdown', 'start-dropdown', 'end-dropdown'].forEach(function(id) {
+                    document.getElementById(id).classList.remove('show');
+                });
+            }
+        });
+        
+        
         // 保存城市选择
         function saveCity(city) {
             if (city && city.trim()) {
@@ -1264,7 +1360,7 @@
             dropdown.classList.toggle('show');
             
             // 关闭其他下拉菜单
-            ['start-dropdown', 'end-dropdown'].forEach(function(id) {
+            ['start-dropdown', 'end-dropdown', 'policy-dropdown'].forEach(function(id) {
                 document.getElementById(id).classList.remove('show');
             });
         }
@@ -1296,6 +1392,31 @@
             timeInput.value = timeString;
             document.getElementById('time-dropdown').classList.remove('show');
             timeInput.focus();
+        }
+        
+        // 切换路线选择依据下拉菜单
+        function togglePolicyDropdown() {
+            var dropdown = document.getElementById('policy-dropdown');
+            dropdown.classList.toggle('show');
+            
+            // 关闭其他下拉菜单
+            ['time-dropdown', 'start-dropdown', 'end-dropdown'].forEach(function(id) {
+                document.getElementById(id).classList.remove('show');
+            });
+        }
+        
+        // 选择路线选择依据
+        function selectPolicy(value, text) {
+            var policyInput = document.getElementById('policy-select');
+            policyInput.value = text;
+            policyInput.setAttribute('data-value', value);
+            document.getElementById('policy-dropdown').classList.remove('show');
+        }
+        
+        // 获取当前选择的路线选择依据值
+        function getPolicyValue() {
+            var policyInput = document.getElementById('policy-select');
+            return policyInput.getAttribute('data-value');
         }
         
         // 隐藏所有建议下拉框
@@ -1382,7 +1503,7 @@
             var dropdown = document.getElementById(dropdownId);
             
             // 关闭所有其他下拉菜单
-            ['start-dropdown', 'end-dropdown'].forEach(function(id) {
+            ['start-dropdown', 'end-dropdown', 'time-dropdown', 'policy-dropdown'].forEach(function(id) {
                 if (id !== dropdownId) {
                     document.getElementById(id).classList.remove('show');
                 }
@@ -1701,6 +1822,23 @@
         // 城市输入框失去焦点时保存
         document.getElementById('cityinput').addEventListener('blur', function() {
             saveCity(this.value);
+        });
+        
+        // 城市输入框内容变化时更新自动完成城市
+        document.getElementById('cityinput').addEventListener('input', function() {
+            var city = this.value.trim() || '全国';
+            currentCity = city;
+            
+            // 立即更新现有地点搜索服务的城市设置
+            if (startPlaceSearch) {
+                startPlaceSearch.setCity(city);
+            }
+            if (endPlaceSearch) {
+                endPlaceSearch.setCity(city);
+            }
+            if (window.settingsPlaceSearch) {
+                window.settingsPlaceSearch.setCity(city);
+            }
         });
         
         // 起点和终点输入框失去焦点时保存
@@ -2512,7 +2650,7 @@
                     <div class="route-header" onclick="toggleRoute(${index})">
                         <div class="route-title">
                             <div class="expand-icon" id="expand-icon-${index}"></div>
-                            方案 ${index + 1}
+                            ${index + 1}
                         </div>
                         <div class="route-summary">
                             <div class="route-time">时间：${formatDuration(route.time)}</div>
