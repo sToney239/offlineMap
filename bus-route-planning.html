@@ -790,7 +790,19 @@
                 <div class="input-item-prepend">
                     <span class="input-item-text">出发时间</span>
                 </div>
-                <input id='departuretime' type="text" placeholder="例如：8、14:30、18:30" style="padding-right: 12px;">
+                <div class="autocomplete-container">
+                    <input id='departuretime' type="text" placeholder="现在出发，或输入8:30、14:30等">
+                    <button class="clear-btn" onclick="clearDepartureTime()" title="清除时间">×</button>
+                    <button class="autocomplete-dropdown" onclick="toggleTimeDropdown()" title="快速选择时间">▼</button>
+                    <div id="time-dropdown" class="dropdown-menu">
+                        <div class="dropdown-item header">快速选择</div>
+                        <div class="dropdown-item" onclick="selectQuickTime('now')">现在出发</div>
+                        <div class="dropdown-item" onclick="selectQuickTime('morning')">早高峰 (8:00)</div>
+                        <div class="dropdown-item" onclick="selectQuickTime('noon')">中午 (12:00)</div>
+                        <div class="dropdown-item" onclick="selectQuickTime('evening')">晚高峰 (18:00)</div>
+                        <div class="dropdown-item" onclick="selectQuickTime('night')">夜间 (22:00)</div>
+                    </div>
+                </div>
             </div>
             <div class="input-item">
                 <div class="input-item-prepend">
@@ -798,7 +810,8 @@
                 </div>
                 <select id="policy-select">
                     <option value="LEAST_TIME">最快捷</option>
-                    <option value="LEAST_SWAP">最少换乘</option>
+                    <option value="LEAST_FEE">最经济</option>
+                    <option value="LEAST_TRANSFER">最少换乘</option>
                     <option value="LEAST_WALK">最少步行</option>
                     <option value="MOST_COMFORT">最舒适</option>
                     <option value="NO_SUBWAY">不乘地铁</option>
@@ -966,11 +979,9 @@
         
         // 设置默认出发时间
         function setDefaultDepartureTime() {
-            var now = new Date();
-            var hours = now.getHours();
-            var minutes = now.getMinutes();
-            var timeString = hours + ':' + (minutes < 10 ? '0' + minutes : minutes);
-            document.getElementById('departuretime').value = timeString;
+            // 不设置默认时间，让用户自己选择
+            // 如果用户没有输入时间，将使用当前时间进行路线规划
+            document.getElementById('departuretime').value = '';
         }
         
         // 智能转换时间格式
@@ -1031,6 +1042,28 @@
             }
             
             return Math.floor(departureDate.getTime() / 1000); // 转换为秒时间戳
+        }
+        
+        // 格式化用户输入的时间为显示格式
+        function formatTimeForDisplay(timestamp) {
+            if (!timestamp) return '现在出发';
+            
+            var date = new Date(timestamp * 1000);
+            var now = new Date();
+            var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            var targetDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            
+            var hours = date.getHours();
+            var minutes = date.getMinutes();
+            var timeString = hours + ':' + (minutes < 10 ? '0' + minutes : minutes);
+            
+            if (targetDate.getTime() === today.getTime()) {
+                return '今天 ' + timeString;
+            } else if (targetDate.getTime() === today.getTime() + 24 * 60 * 60 * 1000) {
+                return '明天 ' + timeString;
+            } else {
+                return date.getMonth() + 1 + '月' + date.getDate() + '日 ' + timeString;
+            }
         }
         
         // 设置自动完成
@@ -1216,6 +1249,53 @@
             
             // 让输入框获得焦点
             input.focus();
+        }
+        
+        // 清除出发时间
+        function clearDepartureTime() {
+            var timeInput = document.getElementById('departuretime');
+            timeInput.value = '';
+            timeInput.focus();
+        }
+        
+        // 切换时间下拉菜单
+        function toggleTimeDropdown() {
+            var dropdown = document.getElementById('time-dropdown');
+            dropdown.classList.toggle('show');
+            
+            // 关闭其他下拉菜单
+            ['start-dropdown', 'end-dropdown'].forEach(function(id) {
+                document.getElementById(id).classList.remove('show');
+            });
+        }
+        
+        // 快速选择时间
+        function selectQuickTime(type) {
+            var timeInput = document.getElementById('departuretime');
+            var now = new Date();
+            var timeString = '';
+            
+            switch(type) {
+                case 'now':
+                    timeString = now.getHours() + ':' + (now.getMinutes() < 10 ? '0' + now.getMinutes() : now.getMinutes());
+                    break;
+                case 'morning':
+                    timeString = '8:00';
+                    break;
+                case 'noon':
+                    timeString = '12:00';
+                    break;
+                case 'evening':
+                    timeString = '18:00';
+                    break;
+                case 'night':
+                    timeString = '22:00';
+                    break;
+            }
+            
+            timeInput.value = timeString;
+            document.getElementById('time-dropdown').classList.remove('show');
+            timeInput.focus();
         }
         
         // 隐藏所有建议下拉框
@@ -1448,7 +1528,7 @@
         // 点击页面其他地方关闭下拉菜单
         document.addEventListener('click', function(e) {
             if (!e.target.matches('.autocomplete-dropdown') && !e.target.closest('.dropdown-menu')) {
-                ['start-dropdown', 'end-dropdown'].forEach(function(id) {
+                ['start-dropdown', 'end-dropdown', 'time-dropdown'].forEach(function(id) {
                     document.getElementById(id).classList.remove('show');
                 });
             }
@@ -1655,7 +1735,8 @@
             var policySelect = document.getElementById('policy-select').value;
             switch(policySelect) {
                 case 'LEAST_TIME': return AMap.TransferPolicy.LEAST_TIME;
-                case 'LEAST_SWAP': return AMap.TransferPolicy.LEAST_SWAP;
+                case 'LEAST_FEE': return AMap.TransferPolicy.LEAST_FEE;
+                case 'LEAST_TRANSFER': return AMap.TransferPolicy.LEAST_TRANSFER;
                 case 'LEAST_WALK': return AMap.TransferPolicy.LEAST_WALK;
                 case 'MOST_COMFORT': return AMap.TransferPolicy.MOST_COMFORT;
                 case 'NO_SUBWAY': return AMap.TransferPolicy.NO_SUBWAY;
@@ -2114,6 +2195,11 @@
             var stops = segment.transit.via_stops;
             var stopsHtml = '';
             
+            // 安全检查：确保stops存在且是数组
+            if (!stops || !Array.isArray(stops)) {
+                stops = [];
+            }
+            
             // 添加on_station作为第一站（上车站）
             if (segment.transit.on_station && segment.transit.on_station.name) {
                 var onStationName = segment.transit.on_station.name;
@@ -2122,7 +2208,9 @@
             
             // 生成站点列表
             stops.forEach(function(stop, index) {
-                stopsHtml += `<div class="subway-stop-item">${stop.name}</div>`;
+                if (stop && stop.name) {
+                    stopsHtml += `<div class="subway-stop-item">${stop.name}</div>`;
+                }
             });
             
             // 添加off_station作为最后一站
@@ -2169,6 +2257,11 @@
             var stops = segment.transit.via_stops;
             var stopsHtml = '';
             
+            // 安全检查：确保stops存在且是数组
+            if (!stops || !Array.isArray(stops)) {
+                stops = [];
+            }
+            
             // 添加on_station作为第一站（上车站）
             if (segment.transit.on_station && segment.transit.on_station.name) {
                 var onStationName = segment.transit.on_station.name;
@@ -2177,7 +2270,9 @@
             
             // 生成站点列表
             stops.forEach(function(stop, index) {
-                stopsHtml += `<div class="subway-stop-item">${stop.name}</div>`;
+                if (stop && stop.name) {
+                    stopsHtml += `<div class="subway-stop-item">${stop.name}</div>`;
+                }
             });
             
             // 添加off_station作为最后一站
@@ -2375,7 +2470,8 @@
                             <div class="step-instruction">${instruction}</div>
                             <div class="step-details">
                                 <div>
-                                    ${durationInfo} ${distanceInfo}
+                                    ${durationInfo ? '<span style="color: #4ec9b0;">时间：' + durationInfo + '</span>' : ''} 
+                                    ${distanceInfo ? '<span style="color: #569cd6;">距离：' + distanceInfo + '</span>' : ''}
                                 </div>
                                 <div>
                                     ${walkLink}
@@ -2419,8 +2515,8 @@
                             方案 ${index + 1}
                         </div>
                         <div class="route-summary">
-                            <div class="route-time">${formatDuration(route.time)}</div>
-                            <div class="route-distance">${formatDistance(walkingDistance)}</div>
+                            <div class="route-time">时间：${formatDuration(route.time)}</div>
+                            <div class="route-distance">距离：${formatDistance(walkingDistance)}</div>
                             ${costDisplay}
                         </div>
                     </div>
@@ -2542,19 +2638,15 @@
                 });
                 
                 // 执行路线搜索
-                // 注意：高德地图API的transfer.search方法对于时间参数的处理比较特殊
-                // 先使用标准的搜索方式，时间功能暂时注释掉以避免错误
+                // 检查是否设置了出发时间
+                if (departureTime) {
+                    // 使用带时间的搜索
+                    transfer.leaveAt(departureTime.toString());
+                }
+                
                 transfer.search(startLoc, endLoc, function(status, result) {
                     handleTransferResult(status, result);
                 });
-                
-                // 如果需要支持出发时间，需要使用更复杂的方式，暂时注释掉
-                /*
-                if (departureTime) {
-                    // 使用带时间的搜索（高德API可能需要不同的参数格式）
-
-                }
-                */
                 
             }).catch(function(error) {
                 document.getElementById('loading').classList.add('hidden');
